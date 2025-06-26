@@ -3,15 +3,16 @@
 	"id": "minfed-display",
 	"version": "${version}",
 	"name": "minfed-display",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Add display block based on MCEF",
 	"authors": [
-		"Me!"
+		"Team shiinamachi",
+		"Chan Kang <me@kentakang.com>"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://minefed.team",
+		"sources": "https://github.com/minefed/minefed-display"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/minfed-display/icon.png",
 	"environment": "*",
 	"entrypoints": {
