@@ -21,7 +21,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"minfed-display" {
+		"minefed-display" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}

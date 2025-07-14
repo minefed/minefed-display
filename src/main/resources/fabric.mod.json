@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "minfed-display",
+	"id": "minefed-display",
 	"version": "${version}",
-	"name": "minfed-display",
+	"name": "minefed-display",
 	"description": "Add display block based on MCEF",
 	"authors": [
 		"Team shiinamachi",
@@ -13,23 +13,23 @@
 		"sources": "https://github.com/minefed/minefed-display"
 	},
 	"license": "MIT",
-	"icon": "assets/minfed-display/icon.png",
+	"icon": "assets/minefed-display/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"team.minefed.mods.display.Minfeddisplay"
+			"team.minefed.mods.display.Minefeddisplay"
 		],
 		"client": [
-			"team.minefed.mods.display.MinfeddisplayClient"
+			"team.minefed.mods.display.MinefeddisplayClient"
 		],
 		"fabric-datagen": [
-			"team.minefed.mods.display.MinfeddisplayDataGenerator"
+			"team.minefed.mods.display.MinefeddisplayDataGenerator"
 		]
 	},
 	"mixins": [
-		"minfed-display.mixins.json",
+      "minefed-display.mixins.json",
 		{
-			"config": "minfed-display.client.mixins.json",
+			"config": "minefed-display.client.mixins.json",
 			"environment": "client"
 		}
 	],
