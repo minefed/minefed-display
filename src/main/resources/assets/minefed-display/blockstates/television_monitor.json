@@ -1,0 +1,10 @@
+{
+  "multipart": [
+    { "when": { "part": "left",   "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/left_lower"   }},
+    { "when": { "part": "center", "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/center_lower" }},
+    { "when": { "part": "right",  "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/right_lower"  }},
+    { "when": { "part": "left",   "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/left_upper"   }},
+    { "when": { "part": "center", "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/center_upper" }},
+    { "when": { "part": "right",  "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/right_upper"  }}
+  ]
+}

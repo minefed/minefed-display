@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import team.minefed.mods.display.blocks.DisplayModBlocks;
 import team.minefed.mods.display.items.DisplayModItems;
 
 public class Minefeddisplay implements ModInitializer {
@@ -13,5 +14,6 @@ public class Minefeddisplay implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		DisplayModItems.initialize();
+		DisplayModBlocks.initialize();
 	}
 }

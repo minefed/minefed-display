@@ -12,20 +12,16 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import team.minefed.mods.display.Minefeddisplay;
+import team.minefed.mods.display.blocks.DisplayModBlocks;
 
 public class DisplayModItems {
 
     public static final RegistryKey<ItemGroup> CUSTOM_ITEM_GROUP_KEY =
             RegistryKey.of(Registries.ITEM_GROUP.getKey(), new Identifier(Minefeddisplay.MOD_ID, "item_group"));
     public static final ItemGroup CUSTOM_ITEM_GROUP = FabricItemGroup.builder()
-            .icon(() -> new ItemStack(DisplayModItems.TELEVISION_MONITOR))
+            .icon(() -> new ItemStack(DisplayModBlocks.TELEVISION_MONITOR.asItem()))
             .displayName(Text.translatable("itemGroup.minefed-display"))
             .build();
-
-    public static final Item TELEVISION_MONITOR = register(
-            new Item(new FabricItemSettings()),
-            "television_monitor"
-    );
 
     public static Item register(Item item, String id) {
         Identifier itemId = new Identifier(Minefeddisplay.MOD_ID, id);
@@ -35,10 +31,5 @@ public class DisplayModItems {
 
     public static void initialize() {
         Registry.register(Registries.ITEM_GROUP, CUSTOM_ITEM_GROUP_KEY, CUSTOM_ITEM_GROUP);
-
-        ItemGroupEvents.modifyEntriesEvent(CUSTOM_ITEM_GROUP_KEY)
-                .register((itemGroup) -> {
-                    itemGroup.add(DisplayModItems.TELEVISION_MONITOR);
-                });
     }
 }
