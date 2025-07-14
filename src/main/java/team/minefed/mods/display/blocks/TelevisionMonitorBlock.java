@@ -18,7 +18,11 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+import team.minefed.mods.display.Minefeddisplay;
 import team.minefed.mods.display.enums.TvPart;
+
+import java.util.Map;
 
 public class TelevisionMonitorBlock extends HorizontalFacingBlock {
 
@@ -26,7 +30,17 @@ public class TelevisionMonitorBlock extends HorizontalFacingBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final EnumProperty<TvPart> PART = EnumProperty.of("part", TvPart.class);
 
-    private static final VoxelShape SHAPE = VoxelShapes.cuboid(0, 0.0, 0, 3.0, 2.0, 0.5);
+    private static final VoxelShape NORTH_SHAPE = VoxelShapes.cuboid(0, 0, 0,   1, 1, 0.5);
+    private static final VoxelShape SOUTH_SHAPE = VoxelShapes.cuboid(0, 0, 0.5, 1, 1, 1);
+    private static final VoxelShape WEST_SHAPE  = VoxelShapes.cuboid(0, 0, 0,   0.5, 1, 1);
+    private static final VoxelShape EAST_SHAPE  = VoxelShapes.cuboid(0.5,0, 0,  1, 1, 1);
+
+    private static final Map<Direction, VoxelShape> SHAPES = Map.of(
+            Direction.NORTH, NORTH_SHAPE,
+            Direction.SOUTH, SOUTH_SHAPE,
+            Direction.WEST,  WEST_SHAPE,
+            Direction.EAST,  EAST_SHAPE
+    );
 
     public TelevisionMonitorBlock() {
         super(AbstractBlock.Settings.create().sounds(BlockSoundGroup.STONE));
@@ -37,42 +51,75 @@ public class TelevisionMonitorBlock extends HorizontalFacingBlock {
     }
 
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
+    public @Nullable BlockState getPlacementState(ItemPlacementContext ctx) {
         Direction facing = ctx.getHorizontalPlayerFacing().getOpposite();
-        BlockPos origin = ctx.getBlockPos();
+        Direction right  = facing.rotateYCounterclockwise();
+        BlockPos anchor  = ctx.getBlockPos();
         World w = ctx.getWorld();
 
         for (int dx = 0; dx < 3; dx++) {
             for (int dy = 0; dy < 2; dy++) {
-                BlockPos p = origin.offset(facing.rotateYClockwise(), -dx).up(dy);
+                BlockPos p = anchor.offset(right, dx).down(dy);
+
+                if (!w.getBlockState(p).canReplace(ctx)) {
+                    return null;
+                }
+            }
+        }
+
+        for (int dx = 0; dx < 3; dx++) {
+            for (int dy = 0; dy < 2; dy++) {
+                BlockPos p = anchor.offset(right, dx).down(dy);
                 BlockState s = getDefaultState()
                         .with(FACING, facing)
                         .with(PART, TvPart.values()[dx])
-                        .with(HALF, dy == 0 ? DoubleBlockHalf.LOWER : DoubleBlockHalf.UPPER);
+                        .with(HALF, dy == 0 ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER);
+
                 w.setBlockState(p, s, Block.NOTIFY_ALL);
             }
         }
 
-        return getDefaultState().with(FACING, facing);
+        return getDefaultState()
+                .with(FACING, facing)
+                .with(PART, TvPart.LEFT)
+                .with(HALF, DoubleBlockHalf.UPPER);
     }
 
     @Override
     public BlockState onBreak(World w, BlockPos pos, BlockState state, PlayerEntity player) {
-        removeWholeStructure(w, pos, state);
+        if (isAnchor(state)) {
+            removeWholeStructure(w, pos, state);
+        } else {
+            BlockPos anchor = findAnchor(pos, state);
+            BlockState anchorState = w.getBlockState(anchor);
+            if (anchorState.getBlock() == this) {
+                removeWholeStructure(w, anchor, anchorState);
+            }
+        }
 
         return super.onBreak(w, pos, state, player);
     }
 
-    private void removeWholeStructure(World w, BlockPos pos, BlockState state) {
-        Direction f = state.get(FACING);
-        int baseX = state.get(PART) == TvPart.LEFT ? 0 : state.get(PART) == TvPart.CENTER ? 1 : 2;
-        int baseY = state.get(HALF) == DoubleBlockHalf.LOWER ? 0 : 1;
-        BlockPos anchor = pos.offset(f.rotateYClockwise(), baseX).down(baseY);
+    private boolean isAnchor(BlockState s) {
+        return s.get(PART) == TvPart.LEFT && s.get(HALF) == DoubleBlockHalf.UPPER;
+    }
 
+    private BlockPos findAnchor(BlockPos pos, BlockState state) {
+        Direction right = state.get(FACING).rotateYCounterclockwise();
+        int idx  = state.get(PART).ordinal();
+        int yOff = state.get(HALF) == DoubleBlockHalf.UPPER ? 0 : 1;
+        return pos.offset(right, -idx).up(1 - yOff);
+    }
+
+    private void removeWholeStructure(World w, BlockPos anchor, BlockState anchorState) {
+        Direction right = anchorState.get(FACING).rotateYCounterclockwise();
         for (int dx = 0; dx < 3; dx++) {
             for (int dy = 0; dy < 2; dy++) {
-                BlockPos p = anchor.offset(f.rotateYClockwise(), -dx).up(dy);
-                if (w.getBlockState(p).getBlock() == this) w.breakBlock(p, false);
+                BlockPos p = anchor.offset(right, dx).down(dy);
+                if (w.getBlockState(p).getBlock() == this) {
+                    w.setBlockState(p, Blocks.AIR.getDefaultState(),
+                            Block.NOTIFY_ALL | Block.FORCE_STATE);
+                }
             }
         }
     }
@@ -80,8 +127,18 @@ public class TelevisionMonitorBlock extends HorizontalFacingBlock {
     @Override protected void appendProperties(StateManager.Builder<Block, BlockState> b) {
         b.add(FACING, HALF, PART);
     }
-    @Override public VoxelShape getOutlineShape(BlockState s, BlockView w, BlockPos p, ShapeContext c) { return SHAPE; }
-    @Override public VoxelShape getCollisionShape(BlockState s, BlockView w, BlockPos p, ShapeContext c){ return SHAPE; }
+
+    @Override
+    public VoxelShape getOutlineShape(BlockState state, BlockView world,
+                                      BlockPos pos, ShapeContext ctx) {
+        return SHAPES.get(state.get(FACING));
+    }
+
+    @Override
+    public VoxelShape getCollisionShape(BlockState state, BlockView world,
+                                        BlockPos pos, ShapeContext ctx) {
+        return getOutlineShape(state, world, pos, ctx);
+    }
 
     @Override
     protected MapCodec<? extends HorizontalFacingBlock> getCodec() {
