@@ -87,41 +87,32 @@ public class TelevisionMonitorBlock extends HorizontalFacingBlock {
 
     @Override
     public BlockState onBreak(World w, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (isAnchor(state)) {
-            removeWholeStructure(w, pos, state);
-        } else {
-            BlockPos anchor = findAnchor(w, pos);
-            BlockState anchorState = w.getBlockState(anchor);
+        BlockPos anchorPos = findAnchor(pos, state);
+        BlockState anchorState = w.getBlockState(anchorPos);
 
-            if (anchor != null && anchorState != null) {
-                removeWholeStructure(w, anchor, anchorState);
-            }
+        if (anchorState.isOf(this)) {
+            removeWholeStructure(w, anchorPos, anchorState);
         }
 
         return super.onBreak(w, pos, state, player);
     }
 
-    private boolean isAnchor(BlockState s) {
-        if (s.getBlock() instanceof TelevisionMonitorBlock) {
-            return s.get(PART) == TvPart.LEFT && s.get(HALF) == DoubleBlockHalf.UPPER;
+    private BlockPos findAnchor(BlockPos pos, BlockState state) {
+        Direction tvRight = state.get(FACING).rotateYCounterclockwise();
+        Direction tvLeft = tvRight.getOpposite();
+
+        if (state.get(HALF) == DoubleBlockHalf.LOWER) {
+            pos = pos.up();
         }
 
-        return false;
-    }
-
-    private BlockPos findAnchor(World w, BlockPos pos) {
-        for (int i = -2; i < 3; i++) {
-            for (int j = -1; j < 2; j++) {
-                BlockPos newBlockPos = pos.add(i, j, 0);
-                BlockState newBlockState = w.getBlockState(newBlockPos);
-
-                if (isAnchor(newBlockState)) {
-                    return newBlockPos;
-                }
-            }
+        switch (state.get(PART)) {
+            case CENTER:
+                return pos.offset(tvLeft);
+            case RIGHT:
+                return pos.offset(tvLeft, 2);
+            default: // LEFT
+                return pos;
         }
-
-        return null;
     }
 
     private void removeWholeStructure(World w, BlockPos anchor, BlockState anchorState) {
@@ -129,7 +120,7 @@ public class TelevisionMonitorBlock extends HorizontalFacingBlock {
         for (int dx = 0; dx < 3; dx++) {
             for (int dy = 0; dy < 2; dy++) {
                 BlockPos p = anchor.offset(right, dx).down(dy);
-                if (w.getBlockState(p).getBlock() == this) {
+                if (w.getBlockState(p).isOf(this)) {
                     w.setBlockState(p, Blocks.AIR.getDefaultState(),
                             Block.NOTIFY_ALL | Block.FORCE_STATE);
                 }

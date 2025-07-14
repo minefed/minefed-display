@@ -1,10 +1,31 @@
 {
   "multipart": [
-    { "when": { "part": "left",   "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/left_lower"   }},
-    { "when": { "part": "center", "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/center_lower" }},
-    { "when": { "part": "right",  "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/right_lower"  }},
-    { "when": { "part": "left",   "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/left_upper"   }},
-    { "when": { "part": "center", "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/center_upper" }},
-    { "when": { "part": "right",  "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/right_upper"  }}
+    { "when": { "facing": "north", "part": "left",   "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/left_lower" }},
+    { "when": { "facing": "north", "part": "center", "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/center_lower" }},
+    { "when": { "facing": "north", "part": "right",  "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/right_lower" }},
+    { "when": { "facing": "north", "part": "left",   "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/left_upper" }},
+    { "when": { "facing": "north", "part": "center", "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/center_upper" }},
+    { "when": { "facing": "north", "part": "right",  "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/right_upper" }},
+
+    { "when": { "facing": "east", "part": "left",   "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/left_lower", "y": 90 }},
+    { "when": { "facing": "east", "part": "center", "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/center_lower", "y": 90 }},
+    { "when": { "facing": "east", "part": "right",  "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/right_lower", "y": 90 }},
+    { "when": { "facing": "east", "part": "left",   "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/left_upper", "y": 90 }},
+    { "when": { "facing": "east", "part": "center", "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/center_upper", "y": 90 }},
+    { "when": { "facing": "east", "part": "right",  "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/right_upper", "y": 90 }},
+
+    { "when": { "facing": "south", "part": "left",   "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/left_lower", "y": 180 }},
+    { "when": { "facing": "south", "part": "center", "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/center_lower", "y": 180 }},
+    { "when": { "facing": "south", "part": "right",  "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/right_lower", "y": 180 }},
+    { "when": { "facing": "south", "part": "left",   "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/left_upper", "y": 180 }},
+    { "when": { "facing": "south", "part": "center", "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/center_upper", "y": 180 }},
+    { "when": { "facing": "south", "part": "right",  "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/right_upper", "y": 180 }},
+
+    { "when": { "facing": "west", "part": "left",   "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/left_lower", "y": 270 }},
+    { "when": { "facing": "west", "part": "center", "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/center_lower", "y": 270 }},
+    { "when": { "facing": "west", "part": "right",  "half": "lower" }, "apply": { "model": "minefed-display:block/television_monitor/right_lower", "y": 270 }},
+    { "when": { "facing": "west", "part": "left",   "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/left_upper", "y": 270 }},
+    { "when": { "facing": "west", "part": "center", "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/center_upper", "y": 270 }},
+    { "when": { "facing": "west", "part": "right",  "half": "upper" }, "apply": { "model": "minefed-display:block/television_monitor/right_upper", "y": 270 }}
   ]
 }
