@@ -70,10 +70,10 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
             Matrix4f matrix4f = matrices.peek().getPositionMatrix();
             BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
             bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-            bufferBuilder.vertex(matrix4f, 0.15f, 1.85f, 0).texture(0, 1).next();
-            bufferBuilder.vertex(matrix4f, 2.85f, 1.85f, 0).texture(1, 1).next();
-            bufferBuilder.vertex(matrix4f, 2.85f, 0.15f, 0).texture(1, 0).next();
-            bufferBuilder.vertex(matrix4f, 0.15f, 0.15f, 0).texture(0, 0).next();
+            bufferBuilder.vertex(matrix4f, 0.15f, 1.85f, 0.25f).texture(0, 1).next();
+            bufferBuilder.vertex(matrix4f, 2.85f, 1.85f, 0.25f).texture(1, 1).next();
+            bufferBuilder.vertex(matrix4f, 2.85f, 0.15f, 0.25f).texture(1, 0).next();
+            bufferBuilder.vertex(matrix4f, 0.15f, 0.15f, 0.25f).texture(0, 0).next();
             Tessellator.getInstance().draw();
 
             matrices.pop();

@@ -27,6 +27,7 @@ public class TelevisionMonitorScreen extends Screen {
         this.urlField = new TextFieldWidget(this.textRenderer, this.width / 2 - 100, this.height / 2 - 10, 200, 20, Text.of(""));
         this.urlField.setText(this.currentUrl);
         this.urlField.setPlaceholder(Text.translatable("gui.television_monitor.url"));
+        this.urlField.setMaxLength(256);
         this.addDrawableChild(this.urlField);
 
         this.addDrawableChild(ButtonWidget.builder(Text.of("Save"), button -> {
