@@ -1,4 +1,5 @@
 {
   "itemGroup.minefed-display": "Minefed Display Items",
-  "block.minefed-display.television_monitor": "Television Monitor"
+  "block.minefed-display.television_monitor": "Television Monitor",
+  "gui.television_monitor.url": "Website URL"
 }

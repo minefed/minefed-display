@@ -2,7 +2,9 @@ package team.minefed.mods.display.blocks;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.*;
+import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.sound.BlockSoundGroup;
@@ -19,12 +21,11 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import team.minefed.mods.display.Minefeddisplay;
 import team.minefed.mods.display.enums.TvPart;
 
 import java.util.Map;
 
-public class TelevisionMonitorBlock extends HorizontalFacingBlock {
+public class TelevisionMonitorBlock extends HorizontalFacingBlock implements BlockEntityProvider {
 
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
@@ -48,6 +49,17 @@ public class TelevisionMonitorBlock extends HorizontalFacingBlock {
                 .with(FACING, Direction.NORTH)
                 .with(HALF, DoubleBlockHalf.LOWER)
                 .with(PART, TvPart.LEFT));
+    }
+
+    @Override
+    public BlockRenderType getRenderType(BlockState state) {
+        return BlockRenderType.MODEL;
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+        return new TelevisionMonitorBlockEntity(pos, state);
     }
 
     @Override
@@ -110,7 +122,7 @@ public class TelevisionMonitorBlock extends HorizontalFacingBlock {
                 return pos.offset(tvLeft);
             case RIGHT:
                 return pos.offset(tvLeft, 2);
-            default: // LEFT
+            default:
                 return pos;
         }
     }
