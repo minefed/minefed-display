@@ -1,0 +1,10 @@
+---
+description: Minecraft 1.20.4 Fabric Mod
+alwaysApply: true
+globs:
+  - "**/*"
+---
+
+- 항상 프로젝트 루트를 참조합니다.
+- 이 프로젝트는 Minecraft 1.20.4 버전을 위해 Fabric으로 개발하고 있는 모드입니다.
+- 항상 한국어로 답변하세요.
