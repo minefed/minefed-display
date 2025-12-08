@@ -15,8 +15,12 @@ public class DisplayModBlocks {
     public static final Block TELEVISION_MONITOR = register(
             new TelevisionMonitorBlock(),
             "television_monitor",
-            true
-    );
+            true);
+
+    public static final Block CUSTOM_SIZE_DISPLAY = register(
+            new CustomSizeDisplayBlock(),
+            "custom_size_display",
+            true);
 
     public static Block register(Block block, String name, boolean shouldRegisterItem) {
         Identifier id = new Identifier(Minefeddisplay.MOD_ID, name);
@@ -33,6 +37,7 @@ public class DisplayModBlocks {
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(DisplayModItems.CUSTOM_ITEM_GROUP_KEY).register((itemGroup) -> {
             itemGroup.add(DisplayModBlocks.TELEVISION_MONITOR.asItem());
+            itemGroup.add(DisplayModBlocks.CUSTOM_SIZE_DISPLAY.asItem());
         });
     }
 }

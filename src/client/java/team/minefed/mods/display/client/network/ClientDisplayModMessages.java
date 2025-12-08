@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
 import team.minefed.mods.display.network.DisplayModMessages;
+import team.minefed.mods.display.network.UpdateCustomDisplayPacket;
 import team.minefed.mods.display.network.UpdateUrlPacket;
 
 public class ClientDisplayModMessages {
@@ -12,4 +13,10 @@ public class ClientDisplayModMessages {
         packet.write(buf);
         ClientPlayNetworking.send(DisplayModMessages.UPDATE_URL_PACKET_ID, buf);
     }
-} 
+
+    public static void sendToServer(UpdateCustomDisplayPacket packet) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        packet.write(buf);
+        ClientPlayNetworking.send(DisplayModMessages.UPDATE_CUSTOM_DISPLAY_PACKET_ID, buf);
+    }
+}

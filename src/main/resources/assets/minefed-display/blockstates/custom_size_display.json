@@ -1,0 +1,34 @@
+{
+    "variants": {
+        "facing=north,is_main=true": {
+            "model": "minefed-display:block/custom_size_display"
+        },
+        "facing=north,is_main=false": {
+            "model": "minefed-display:block/custom_size_display"
+        },
+        "facing=east,is_main=true": {
+            "model": "minefed-display:block/custom_size_display",
+            "y": 90
+        },
+        "facing=east,is_main=false": {
+            "model": "minefed-display:block/custom_size_display",
+            "y": 90
+        },
+        "facing=south,is_main=true": {
+            "model": "minefed-display:block/custom_size_display",
+            "y": 180
+        },
+        "facing=south,is_main=false": {
+            "model": "minefed-display:block/custom_size_display",
+            "y": 180
+        },
+        "facing=west,is_main=true": {
+            "model": "minefed-display:block/custom_size_display",
+            "y": 270
+        },
+        "facing=west,is_main=false": {
+            "model": "minefed-display:block/custom_size_display",
+            "y": 270
+        }
+    }
+}

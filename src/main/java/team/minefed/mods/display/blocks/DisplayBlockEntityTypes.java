@@ -11,11 +11,17 @@ public class DisplayBlockEntityTypes {
 
     public static final BlockEntityType<TelevisionMonitorBlockEntity> TELEVISION_MONITOR_BLOCK = register(
             "television_monitor",
-            FabricBlockEntityTypeBuilder.create(TelevisionMonitorBlockEntity::new, DisplayModBlocks.TELEVISION_MONITOR).build()
-    );
+            FabricBlockEntityTypeBuilder.create(TelevisionMonitorBlockEntity::new, DisplayModBlocks.TELEVISION_MONITOR)
+                    .build());
+
+    public static final BlockEntityType<CustomSizeDisplayBlockEntity> CUSTOM_SIZE_DISPLAY_BLOCK = register(
+            "custom_size_display",
+            FabricBlockEntityTypeBuilder.create(CustomSizeDisplayBlockEntity::new, DisplayModBlocks.CUSTOM_SIZE_DISPLAY)
+                    .build());
 
     public static <T extends BlockEntityType<?>> T register(String path, T blockEntityType) {
-        return Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(Minefeddisplay.MOD_ID, path), blockEntityType);
+        return Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(Minefeddisplay.MOD_ID, path),
+                blockEntityType);
     }
 
     public static void initialize() {

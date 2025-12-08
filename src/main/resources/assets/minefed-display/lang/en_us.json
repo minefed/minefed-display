@@ -1,5 +1,9 @@
 {
   "itemGroup.minefed-display": "Minefed Display Items",
   "block.minefed-display.television_monitor": "Television Monitor",
-  "gui.television_monitor.url": "Website URL"
+  "block.minefed-display.custom_size_display": "Custom Size Display",
+  "gui.television_monitor.url": "Website URL",
+  "gui.custom_size_display.url": "Website URL",
+  "gui.custom_size_display.width": "Width",
+  "gui.custom_size_display.height": "Height"
 }
