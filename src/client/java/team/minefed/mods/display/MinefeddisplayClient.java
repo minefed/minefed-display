@@ -1,32 +1,26 @@
 package team.minefed.mods.display;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import team.minefed.mods.display.blocks.CustomSizeDisplayBlock;
 import team.minefed.mods.display.blocks.CustomSizeDisplayBlockEntity;
-import team.minefed.mods.display.blocks.DisplayBlockEntityTypes;
 import team.minefed.mods.display.blocks.TelevisionMonitorBlock;
 import team.minefed.mods.display.blocks.TelevisionMonitorBlockEntity;
 import team.minefed.mods.display.client.gui.CustomSizeDisplayScreen;
 import team.minefed.mods.display.client.gui.TelevisionMonitorScreen;
-import team.minefed.mods.display.client.renderers.CustomSizeDisplayBlockEntityRenderer;
-import team.minefed.mods.display.client.renderers.TelevisionMonitorBlockEntityRenderer;
+import team.minefed.mods.display.client.McefDisplayRendering;
 
 public class MinefeddisplayClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		BlockEntityRendererRegistry.register(DisplayBlockEntityTypes.TELEVISION_MONITOR_BLOCK,
-				TelevisionMonitorBlockEntityRenderer::new);
-		BlockEntityRendererRegistry.register(DisplayBlockEntityTypes.CUSTOM_SIZE_DISPLAY_BLOCK,
-				CustomSizeDisplayBlockEntityRenderer::new);
-
-		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
-			TelevisionMonitorBlockEntityRenderer.closeAll();
-			CustomSizeDisplayBlockEntityRenderer.closeAll();
-		});
+		if (FabricLoader.getInstance().isModLoaded("mcef")) {
+			McefDisplayRendering.initialize();
+		} else {
+			Minefeddisplay.LOGGER.warn("MCEF is not installed: display web rendering is disabled. "
+					+ "Install MCEF 2.1.6 or later for Minecraft 1.20.4 on this client to enable it.");
+		}
 
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
 			if (world.isClient) {
