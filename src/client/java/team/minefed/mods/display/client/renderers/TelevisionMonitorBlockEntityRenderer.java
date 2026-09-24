@@ -2,7 +2,6 @@ package team.minefed.mods.display.client.renderers;
 
 import com.cinemamod.mcef.MCEF;
 import com.cinemamod.mcef.MCEFBrowser;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
@@ -31,7 +30,7 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
 
         if (url == null || url.isEmpty() || "about:blank".equals(url)) {
             if (BROWSERS.containsKey(pos)) {
-                BROWSERS.remove(pos).close();
+                closeBrowser(BROWSERS.remove(pos));
                 URLS.remove(pos);
             }
             return;
@@ -53,7 +52,6 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
             }
         }
 
-        // Assuming getTextureID() provides the OpenGL texture ID
         int textureId = browser.getRenderer().getTextureID();
 
         if (textureId != 0) {
@@ -63,26 +61,24 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180));
             matrices.translate(-0.5, -0.5, -0.501);
 
-            RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            RenderSystem.setShaderTexture(0, textureId);
-
             Matrix4f matrix4f = matrices.peek().getPositionMatrix();
-            BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-            bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+            VertexConsumer bufferBuilder = vertexConsumers.getBuffer(DisplayRenderLayers.browser(textureId));
             bufferBuilder.vertex(matrix4f, 0.15f, 1.85f, 0.25f).texture(0, 1).next();
             bufferBuilder.vertex(matrix4f, 2.85f, 1.85f, 0.25f).texture(1, 1).next();
             bufferBuilder.vertex(matrix4f, 2.85f, 0.15f, 0.25f).texture(1, 0).next();
             bufferBuilder.vertex(matrix4f, 0.15f, 0.15f, 0.25f).texture(0, 0).next();
-            Tessellator.getInstance().draw();
-
             matrices.pop();
         }
     }
 
     public static void closeAll() {
-        BROWSERS.values().forEach(MCEFBrowser::close);
+        BROWSERS.values().forEach(TelevisionMonitorBlockEntityRenderer::closeBrowser);
         BROWSERS.clear();
         URLS.clear();
     }
-} 
+
+    private static void closeBrowser(MCEFBrowser browser) {
+        DisplayRenderLayers.releaseBrowser(browser.getRenderer().getTextureID());
+        browser.close();
+    }
+}

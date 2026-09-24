@@ -96,3 +96,27 @@ publishing {
 		// retrieving dependencies.
 	}
 }
+
+// An opt-in graphics regression check; requires a desktop OpenGL driver, but
+// creates only a hidden window and does not launch Minecraft or MCEF.
+sourceSets {
+	renderTest {
+		compileClasspath += sourceSets.client.output + sourceSets.client.compileClasspath
+		runtimeClasspath += sourceSets.client.runtimeClasspath
+	}
+}
+
+tasks.register('verifyDisplayOcclusion', JavaExec) {
+	group = 'verification'
+	description = 'Checks display depth occlusion in a hidden OpenGL context.'
+	classpath = sourceSets.renderTest.runtimeClasspath
+	mainClass = 'team.minefed.mods.display.client.renderers.DisplayOcclusionTestLauncher'
+	systemProperty 'fabric.development', 'true'
+	workingDir = layout.buildDirectory.dir('render-test').get().asFile
+	doFirst {
+		workingDir.mkdirs()
+		def classpathFile = new File(workingDir, 'classpath.txt')
+		classpathFile.setText(classpath.asPath, 'UTF-8')
+		systemProperty 'minefed.testClasspath', classpathFile.absolutePath
+	}
+}

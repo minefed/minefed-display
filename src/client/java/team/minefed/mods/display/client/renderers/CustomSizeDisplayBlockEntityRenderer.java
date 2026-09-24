@@ -2,12 +2,9 @@ package team.minefed.mods.display.client.renderers;
 
 import com.cinemamod.mcef.MCEF;
 import com.cinemamod.mcef.MCEFBrowser;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -54,11 +51,11 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         int height = entity.getDisplayHeight();
 
         // Always render bezel, even without URL
-        renderBezel(entity, matrices, width, height);
+        renderBezel(entity, matrices, vertexConsumers, width, height);
 
         if (url == null || url.isEmpty() || "about:blank".equals(url)) {
             if (BROWSERS.containsKey(pos)) {
-                BROWSERS.remove(pos).close();
+                closeBrowser(BROWSERS.remove(pos));
                 URLS.remove(pos);
                 SIZES.remove(pos);
             }
@@ -93,11 +90,12 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         int textureId = browser.getRenderer().getTextureID();
 
         if (textureId != 0) {
-            renderBrowserContent(entity, matrices, width, height, textureId);
+            renderBrowserContent(entity, matrices, vertexConsumers, width, height, textureId);
         }
     }
 
-    private void renderBezel(CustomSizeDisplayBlockEntity entity, MatrixStack matrices, int width, int height) {
+    private void renderBezel(CustomSizeDisplayBlockEntity entity, MatrixStack matrices,
+            VertexConsumerProvider vertexConsumers, int width, int height) {
         matrices.push();
         // Same transform as TelevisionMonitorBlockEntityRenderer
         matrices.translate(0.5, 0.5, 0.5);
@@ -106,18 +104,12 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180));
         matrices.translate(-0.5, -0.5, -0.001);
 
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-
         Matrix4f matrix4f = matrices.peek().getPositionMatrix();
 
         // Render each block position with appropriate texture
         for (int dx = 0; dx < width; dx++) {
             for (int dy = 0; dy < height; dy++) {
                 Identifier texture = getBezelTexture(dx, dy, width, height);
-                bindTexture(texture);
 
                 // After 180 degree X rotation, Y is flipped, so we adjust coordinates
                 float left = dx;
@@ -125,17 +117,14 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
                 float top = 1 + dy;
                 float bottom = dy;
 
-                BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-                bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+                VertexConsumer bufferBuilder = vertexConsumers.getBuffer(DisplayRenderLayers.bezel(texture));
                 bufferBuilder.vertex(matrix4f, left, top, 0).texture(0, 1).next();
                 bufferBuilder.vertex(matrix4f, right, top, 0).texture(1, 1).next();
                 bufferBuilder.vertex(matrix4f, right, bottom, 0).texture(1, 0).next();
                 bufferBuilder.vertex(matrix4f, left, bottom, 0).texture(0, 0).next();
-                Tessellator.getInstance().draw();
             }
         }
 
-        RenderSystem.disableBlend();
         matrices.pop();
     }
 
@@ -178,13 +167,8 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         }
     }
 
-    private void bindTexture(Identifier textureId) {
-        AbstractTexture texture = MinecraftClient.getInstance().getTextureManager().getTexture(textureId);
-        RenderSystem.setShaderTexture(0, texture.getGlId());
-    }
-
     private void renderBrowserContent(CustomSizeDisplayBlockEntity entity, MatrixStack matrices,
-            int width, int height, int textureId) {
+            VertexConsumerProvider vertexConsumers, int width, int height, int textureId) {
         matrices.push();
         // Same transform as TelevisionMonitorBlockEntityRenderer
         matrices.translate(0.5, 0.5, 0.5);
@@ -193,13 +177,8 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180));
         matrices.translate(-0.5, -0.5, -0.002);
 
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, textureId);
-
         Matrix4f matrix4f = matrices.peek().getPositionMatrix();
-        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+        VertexConsumer bufferBuilder = vertexConsumers.getBuffer(DisplayRenderLayers.browser(textureId));
 
         // Calculate render bounds with margin for bezel
         float margin = 0.1f;
@@ -214,7 +193,6 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         bufferBuilder.vertex(matrix4f, right, top, 0).texture(1, 1).next();
         bufferBuilder.vertex(matrix4f, right, bottom, 0).texture(1, 0).next();
         bufferBuilder.vertex(matrix4f, left, bottom, 0).texture(0, 0).next();
-        Tessellator.getInstance().draw();
 
         matrices.pop();
     }
@@ -230,7 +208,7 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
     }
 
     public static void closeAll() {
-        BROWSERS.values().forEach(MCEFBrowser::close);
+        BROWSERS.values().forEach(CustomSizeDisplayBlockEntityRenderer::closeBrowser);
         BROWSERS.clear();
         URLS.clear();
         SIZES.clear();
@@ -239,9 +217,14 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
     public static void closeBrowser(BlockPos pos) {
         MCEFBrowser browser = BROWSERS.remove(pos);
         if (browser != null) {
-            browser.close();
+            closeBrowser(browser);
         }
         URLS.remove(pos);
         SIZES.remove(pos);
+    }
+
+    private static void closeBrowser(MCEFBrowser browser) {
+        DisplayRenderLayers.releaseBrowser(browser.getRenderer().getTextureID());
+        browser.close();
     }
 }
