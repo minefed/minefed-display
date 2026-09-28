@@ -106,26 +106,57 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
 
         Matrix4f matrix4f = matrices.peek().getPositionMatrix();
 
-        // Render each block position with appropriate texture
+        // The vertex provider draws the pending layer whenever another layer is
+        // requested, so emit all quads of one texture together. The quads tile the
+        // plane without overlapping, which makes their draw order irrelevant. Textures
+        // are visited in first-use order; the bottom-right texture is unique to its
+        // quad, so the layer left pending for the next caller is unchanged.
+        Identifier[] textures = new Identifier[6];
+        int textureCount = 0;
         for (int dx = 0; dx < width; dx++) {
             for (int dy = 0; dy < height; dy++) {
                 Identifier texture = getBezelTexture(dx, dy, width, height);
+                if (indexOf(textures, textureCount, texture) < 0) {
+                    textures[textureCount++] = texture;
+                }
+            }
+        }
 
-                // After 180 degree X rotation, Y is flipped, so we adjust coordinates
-                float left = dx;
-                float right = dx + 1;
-                float top = 1 + dy;
-                float bottom = dy;
+        // Render each block position with appropriate texture
+        for (int i = 0; i < textureCount; i++) {
+            Identifier texture = textures[i];
+            VertexConsumer bufferBuilder = vertexConsumers.getBuffer(DisplayRenderLayers.bezel(texture));
 
-                VertexConsumer bufferBuilder = vertexConsumers.getBuffer(DisplayRenderLayers.bezel(texture));
-                bufferBuilder.vertex(matrix4f, left, top, 0).texture(0, 1).next();
-                bufferBuilder.vertex(matrix4f, right, top, 0).texture(1, 1).next();
-                bufferBuilder.vertex(matrix4f, right, bottom, 0).texture(1, 0).next();
-                bufferBuilder.vertex(matrix4f, left, bottom, 0).texture(0, 0).next();
+            for (int dx = 0; dx < width; dx++) {
+                for (int dy = 0; dy < height; dy++) {
+                    if (getBezelTexture(dx, dy, width, height) != texture) {
+                        continue;
+                    }
+
+                    // After 180 degree X rotation, Y is flipped, so we adjust coordinates
+                    float left = dx;
+                    float right = dx + 1;
+                    float top = 1 + dy;
+                    float bottom = dy;
+
+                    bufferBuilder.vertex(matrix4f, left, top, 0).texture(0, 1).next();
+                    bufferBuilder.vertex(matrix4f, right, top, 0).texture(1, 1).next();
+                    bufferBuilder.vertex(matrix4f, right, bottom, 0).texture(1, 0).next();
+                    bufferBuilder.vertex(matrix4f, left, bottom, 0).texture(0, 0).next();
+                }
             }
         }
 
         matrices.pop();
+    }
+
+    private static int indexOf(Identifier[] textures, int count, Identifier texture) {
+        for (int i = 0; i < count; i++) {
+            if (textures[i] == texture) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private Identifier getBezelTexture(int x, int y, int width, int height) {
