@@ -21,6 +21,7 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
     private static final Map<BlockPos, MCEFBrowser> BROWSERS = new HashMap<>();
     private static final Map<BlockPos, String> URLS = new HashMap<>();
     private static final Map<BlockPos, int[]> SIZES = new HashMap<>();
+    private static final Map<BlockPos, Long> LAST_IN_VIEW = new HashMap<>();
 
     // Pixels per block for browser resolution
     private static final int PIXELS_PER_BLOCK = 400;
@@ -61,6 +62,12 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
             }
             return;
         }
+
+        // A display outside the view frustum draws nothing; do not create or keep a browser for it
+        if (!BrowserVisibility.isInView(pos, Math.max(width, height))) {
+            return;
+        }
+        LAST_IN_VIEW.put(pos, System.currentTimeMillis());
 
         MCEFBrowser browser = BROWSERS.get(pos);
         int[] cachedSize = SIZES.get(pos);
@@ -243,6 +250,22 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         BROWSERS.clear();
         URLS.clear();
         SIZES.clear();
+        LAST_IN_VIEW.clear();
+    }
+
+    /** Closes browsers of displays that were not in view for a while; they reload when seen again. */
+    public static void closeIdle(long currentMillis) {
+        BROWSERS.keySet().removeIf(pos -> {
+            final Long lastInView = LAST_IN_VIEW.get(pos);
+            if (lastInView != null && currentMillis - lastInView <= BrowserVisibility.IDLE_MILLIS) {
+                return false;
+            }
+            closeBrowser(BROWSERS.get(pos));
+            URLS.remove(pos);
+            SIZES.remove(pos);
+            LAST_IN_VIEW.remove(pos);
+            return true;
+        });
     }
 
     public static void closeBrowser(BlockPos pos) {
@@ -252,6 +275,7 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         }
         URLS.remove(pos);
         SIZES.remove(pos);
+        LAST_IN_VIEW.remove(pos);
     }
 
     private static void closeBrowser(MCEFBrowser browser) {

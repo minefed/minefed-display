@@ -19,6 +19,7 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
 
     private static final Map<BlockPos, MCEFBrowser> BROWSERS = new HashMap<>();
     private static final Map<BlockPos, String> URLS = new HashMap<>();
+    private static final Map<BlockPos, Long> LAST_IN_VIEW = new HashMap<>();
 
     public TelevisionMonitorBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
     }
@@ -35,6 +36,12 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
             }
             return;
         }
+
+        // A monitor outside the view frustum draws nothing; do not create or keep a browser for it
+        if (!BrowserVisibility.isInView(pos, 3)) {
+            return;
+        }
+        LAST_IN_VIEW.put(pos, System.currentTimeMillis());
 
         MCEFBrowser browser = BROWSERS.get(pos);
         if (browser == null) {
@@ -75,6 +82,7 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
         BROWSERS.values().forEach(TelevisionMonitorBlockEntityRenderer::closeBrowser);
         BROWSERS.clear();
         URLS.clear();
+        LAST_IN_VIEW.clear();
     }
 
     public static void closeBrowser(BlockPos pos) {
@@ -83,6 +91,21 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
             closeBrowser(browser);
         }
         URLS.remove(pos);
+        LAST_IN_VIEW.remove(pos);
+    }
+
+    /** Closes browsers of monitors that were not in view for a while; they reload when seen again. */
+    public static void closeIdle(long currentMillis) {
+        BROWSERS.keySet().removeIf(pos -> {
+            final Long lastInView = LAST_IN_VIEW.get(pos);
+            if (lastInView != null && currentMillis - lastInView <= BrowserVisibility.IDLE_MILLIS) {
+                return false;
+            }
+            closeBrowser(BROWSERS.get(pos));
+            URLS.remove(pos);
+            LAST_IN_VIEW.remove(pos);
+            return true;
+        });
     }
 
     private static void closeBrowser(MCEFBrowser browser) {

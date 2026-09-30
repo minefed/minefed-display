@@ -2,6 +2,7 @@ package team.minefed.mods.display.client;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import team.minefed.mods.display.blocks.CustomSizeDisplayBlockEntity;
@@ -12,6 +13,9 @@ import team.minefed.mods.display.client.renderers.TelevisionMonitorBlockEntityRe
 
 /** Keeps browser renderer classes unloaded until the optional MCEF mod is present. */
 public final class McefDisplayRendering {
+	private static final int IDLE_CHECK_TICKS = 100;
+	private static int ticks;
+
 	private McefDisplayRendering() {
 	}
 
@@ -30,6 +34,13 @@ public final class McefDisplayRendering {
 				CustomSizeDisplayBlockEntityRenderer.closeBrowser(blockEntity.getPos());
 			} else if (blockEntity instanceof TelevisionMonitorBlockEntity) {
 				TelevisionMonitorBlockEntityRenderer.closeBrowser(blockEntity.getPos());
+			}
+		});
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (++ticks % IDLE_CHECK_TICKS == 0) {
+				final long currentMillis = System.currentTimeMillis();
+				CustomSizeDisplayBlockEntityRenderer.closeIdle(currentMillis);
+				TelevisionMonitorBlockEntityRenderer.closeIdle(currentMillis);
 			}
 		});
 	}
