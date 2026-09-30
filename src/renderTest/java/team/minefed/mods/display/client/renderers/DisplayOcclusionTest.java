@@ -9,11 +9,12 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryStack;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /** Exercises actual depth-buffer behavior without starting a game or browser. */
 public final class DisplayOcclusionTest {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if (!GLFW.glfwInit()) {
             throw new IllegalStateException("GLFW initialization failed; a desktop OpenGL driver is required");
         }
@@ -71,6 +72,7 @@ public final class DisplayOcclusionTest {
             expectPixel(255, 0, 0, "display writes depth and hides later geometry behind it");
             DisplayRenderLayers.releaseBrowser(0);
             System.out.println("Display occlusion regression passed (control, occlusion, foreground, depth write, tint).");
+            DisplayBezelAlphaTest.run();
         } finally {
             GLFW.glfwDestroyWindow(window);
             GLFW.glfwTerminate();

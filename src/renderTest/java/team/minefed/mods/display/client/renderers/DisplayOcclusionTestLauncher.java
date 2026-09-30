@@ -13,7 +13,8 @@ public final class DisplayOcclusionTestLauncher {
         // discovery needs the expanded paths rather than that wrapper JAR.
         System.setProperty("java.class.path", Files.readString(Path.of(System.getProperty("minefed.testClasspath"))));
         ClassLoader loader = new Knot(EnvType.CLIENT).init(new String[0]);
-        Class.forName("team.minefed.mods.display.client.renderers.DisplayOcclusionTest", true, loader)
+        Class.forName(System.getProperty("minefed.testMainClass",
+                        "team.minefed.mods.display.client.renderers.DisplayOcclusionTest"), true, loader)
                 .getMethod("main", String[].class).invoke(null, (Object) args);
     }
 }

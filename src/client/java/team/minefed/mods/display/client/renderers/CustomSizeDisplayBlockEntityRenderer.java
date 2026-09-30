@@ -113,95 +113,50 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
 
         Matrix4f matrix4f = matrices.peek().getPositionMatrix();
 
-        // The vertex provider draws the pending layer whenever another layer is
-        // requested, so emit all quads of one texture together. The quads tile the
-        // plane without overlapping, which makes their draw order irrelevant. Textures
-        // are visited in first-use order; the bottom-right texture is unique to its
-        // quad, so the layer left pending for the next caller is unchanged.
-        Identifier[] textures = new Identifier[6];
-        int textureCount = 0;
-        for (int dx = 0; dx < width; dx++) {
-            for (int dy = 0; dy < height; dy++) {
-                Identifier texture = getBezelTexture(dx, dy, width, height);
-                if (indexOf(textures, textureCount, texture) < 0) {
-                    textures[textureCount++] = texture;
-                }
+        // Visit the existing texture groups directly, in their original first-use
+        // order. Keep every quad and the x-outer/y-inner order within each group,
+        // including the final layer left pending in the vertex provider.
+        if (width > 0 && height > 0) {
+            renderBezelColumn(matrix4f, vertexConsumers, 0, 1, height, TEX_LEFT_UPPER, TEX_LEFT_LOWER);
+            if (width > 2) {
+                renderBezelColumn(matrix4f, vertexConsumers, 1, width - 1, height,
+                        TEX_CENTER_UPPER, TEX_CENTER_LOWER);
             }
-        }
-
-        // Render each block position with appropriate texture
-        for (int i = 0; i < textureCount; i++) {
-            Identifier texture = textures[i];
-            VertexConsumer bufferBuilder = vertexConsumers.getBuffer(DisplayRenderLayers.bezel(texture));
-
-            for (int dx = 0; dx < width; dx++) {
-                for (int dy = 0; dy < height; dy++) {
-                    if (getBezelTexture(dx, dy, width, height) != texture) {
-                        continue;
-                    }
-
-                    // After 180 degree X rotation, Y is flipped, so we adjust coordinates
-                    float left = dx;
-                    float right = dx + 1;
-                    float top = 1 + dy;
-                    float bottom = dy;
-
-                    bufferBuilder.vertex(matrix4f, left, top, 0).texture(0, 1).next();
-                    bufferBuilder.vertex(matrix4f, right, top, 0).texture(1, 1).next();
-                    bufferBuilder.vertex(matrix4f, right, bottom, 0).texture(1, 0).next();
-                    bufferBuilder.vertex(matrix4f, left, bottom, 0).texture(0, 0).next();
-                }
+            if (width > 1) {
+                renderBezelColumn(matrix4f, vertexConsumers, width - 1, width, height,
+                        TEX_RIGHT_UPPER, TEX_RIGHT_LOWER);
             }
         }
 
         matrices.pop();
     }
 
-    private static int indexOf(Identifier[] textures, int count, Identifier texture) {
-        for (int i = 0; i < count; i++) {
-            if (textures[i] == texture) {
-                return i;
-            }
+    private static void renderBezelColumn(Matrix4f matrix, VertexConsumerProvider vertexConsumers,
+            int startX, int endX, int height, Identifier upper, Identifier lower) {
+        // A single row uses the upper texture; a single column uses the left pair.
+        int upperEndY = height == 1 ? 1 : height - 1;
+        renderBezelGroup(matrix, vertexConsumers, startX, endX, 0, upperEndY, upper);
+        if (height > 1) {
+            renderBezelGroup(matrix, vertexConsumers, startX, endX, height - 1, height, lower);
         }
-        return -1;
     }
 
-    private Identifier getBezelTexture(int x, int y, int width, int height) {
-        boolean isLeft = (x == 0);
-        boolean isRight = (x == width - 1);
-        boolean isTop = (y == 0);
-        boolean isBottom = (y == height - 1);
+    private static void renderBezelGroup(Matrix4f matrix, VertexConsumerProvider vertexConsumers,
+            int startX, int endX, int startY, int endY, Identifier texture) {
+        VertexConsumer bufferBuilder = vertexConsumers.getBuffer(DisplayRenderLayers.bezel(texture));
+        for (int dx = startX; dx < endX; dx++) {
+            for (int dy = startY; dy < endY; dy++) {
+                // Preserve integer addition before converting coordinates to float.
+                float left = dx;
+                float right = dx + 1;
+                float top = 1 + dy;
+                float bottom = dy;
 
-        // For single-width displays
-        if (width == 1) {
-            isLeft = true;
-            isRight = true;
-        }
-        // For single-height displays
-        if (height == 1) {
-            isTop = true;
-            isBottom = true;
-        }
-
-        if (isTop) {
-            if (isLeft)
-                return TEX_LEFT_UPPER;
-            if (isRight)
-                return TEX_RIGHT_UPPER;
-            return TEX_CENTER_UPPER;
-        } else if (isBottom) {
-            if (isLeft)
-                return TEX_LEFT_LOWER;
-            if (isRight)
-                return TEX_RIGHT_LOWER;
-            return TEX_CENTER_LOWER;
-        } else {
-            // Middle rows
-            if (isLeft)
-                return TEX_LEFT_UPPER;
-            if (isRight)
-                return TEX_RIGHT_UPPER;
-            return TEX_CENTER_UPPER;
+                bufferBuilder.vertex(matrix, left, top, 0).texture(0, 1).next();
+                bufferBuilder.vertex(matrix, right, top, 0).texture(1, 1).next();
+                bufferBuilder.vertex(matrix, right, bottom, 0).texture(1, 0).next();
+                bufferBuilder.vertex(matrix, left, bottom, 0).texture(0, 0).next();
+            }
         }
     }
 

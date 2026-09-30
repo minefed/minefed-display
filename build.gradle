@@ -120,3 +120,26 @@ tasks.register('verifyDisplayOcclusion', JavaExec) {
 		systemProperty 'minefed.testClasspath', classpathFile.absolutePath
 	}
 }
+
+// Runs the public production renderer against the preserved pre-optimization
+// command stream. No OpenGL context, game instance, or browser is needed.
+tasks.register('verifyDisplayBezelTrace', JavaExec) {
+	group = 'verification'
+	description = 'Compares complete ordered bezel layer, vertex, and UV traces.'
+	maxHeapSize = '512m'
+	classpath = sourceSets.renderTest.runtimeClasspath
+	mainClass = 'team.minefed.mods.display.client.renderers.DisplayOcclusionTestLauncher'
+	systemProperty 'fabric.development', 'true'
+	systemProperty 'minefed.testMainClass', 'team.minefed.mods.display.client.renderers.DisplayBezelTraceTest'
+	workingDir = layout.buildDirectory.dir('bezel-trace-test').get().asFile
+	doFirst {
+		workingDir.mkdirs()
+		def classpathFile = new File(workingDir, 'classpath.txt')
+		classpathFile.setText(classpath.asPath, 'UTF-8')
+		systemProperty 'minefed.testClasspath', classpathFile.absolutePath
+	}
+}
+
+tasks.named('check') {
+	dependsOn tasks.named('verifyDisplayBezelTrace')
+}
