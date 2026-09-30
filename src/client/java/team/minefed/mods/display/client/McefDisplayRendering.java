@@ -1,8 +1,12 @@
 package team.minefed.mods.display.client;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import team.minefed.mods.display.blocks.CustomSizeDisplayBlockEntity;
 import team.minefed.mods.display.blocks.DisplayBlockEntityTypes;
+import team.minefed.mods.display.blocks.TelevisionMonitorBlockEntity;
 import team.minefed.mods.display.client.renderers.CustomSizeDisplayBlockEntityRenderer;
 import team.minefed.mods.display.client.renderers.TelevisionMonitorBlockEntityRenderer;
 
@@ -17,9 +21,21 @@ public final class McefDisplayRendering {
 		BlockEntityRendererRegistry.register(DisplayBlockEntityTypes.CUSTOM_SIZE_DISPLAY_BLOCK,
 				CustomSizeDisplayBlockEntityRenderer::new);
 
-		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
-			TelevisionMonitorBlockEntityRenderer.closeAll();
-			CustomSizeDisplayBlockEntityRenderer.closeAll();
+		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> closeAll());
+		// Browsers belong to the world they were shown in; the maps are keyed only by position
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> closeAll());
+		// A removed or unloaded display cannot be drawn again; its page reloads if it comes back
+		ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
+			if (blockEntity instanceof CustomSizeDisplayBlockEntity) {
+				CustomSizeDisplayBlockEntityRenderer.closeBrowser(blockEntity.getPos());
+			} else if (blockEntity instanceof TelevisionMonitorBlockEntity) {
+				TelevisionMonitorBlockEntityRenderer.closeBrowser(blockEntity.getPos());
+			}
 		});
+	}
+
+	private static void closeAll() {
+		TelevisionMonitorBlockEntityRenderer.closeAll();
+		CustomSizeDisplayBlockEntityRenderer.closeAll();
 	}
 }

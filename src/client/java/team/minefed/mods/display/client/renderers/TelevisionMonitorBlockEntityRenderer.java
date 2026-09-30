@@ -77,6 +77,14 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
         URLS.clear();
     }
 
+    public static void closeBrowser(BlockPos pos) {
+        MCEFBrowser browser = BROWSERS.remove(pos);
+        if (browser != null) {
+            closeBrowser(browser);
+        }
+        URLS.remove(pos);
+    }
+
     private static void closeBrowser(MCEFBrowser browser) {
         DisplayRenderLayers.releaseBrowser(browser.getRenderer().getTextureID());
         browser.close();
