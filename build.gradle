@@ -104,6 +104,25 @@ sourceSets {
 		compileClasspath += sourceSets.client.output + sourceSets.client.compileClasspath
 		runtimeClasspath += sourceSets.client.runtimeClasspath
 	}
+	// Lightweight MCEF boundary fixtures; deliberately excluded from the mod JAR.
+	browserTest
+}
+
+dependencies {
+	browserTestImplementation 'org.ow2.asm:asm:9.7.1'
+	browserTestCompileOnly sourceSets.client.output
+}
+
+tasks.register('verifyDisplayCursor', JavaExec) {
+	group = 'verification'
+	description = 'Checks that passive browsers cannot change the game cursor, including during creation.'
+	dependsOn tasks.named('clientClasses'), tasks.named('browserTestClasses')
+	// Fixtures replace MCEF only in this process; execute the compiled production factory.
+	classpath = sourceSets.browserTest.runtimeClasspath + sourceSets.client.output
+	mainClass = 'team.minefed.mods.display.client.renderers.DisplayCursorTest'
+	doFirst {
+		systemProperty 'minefed.mcefClasspath', sourceSets.client.compileClasspath.asPath
+	}
 }
 
 tasks.register('verifyDisplayOcclusion', JavaExec) {
@@ -142,4 +161,5 @@ tasks.register('verifyDisplayBezelTrace', JavaExec) {
 
 tasks.named('check') {
 	dependsOn tasks.named('verifyDisplayBezelTrace')
+	dependsOn tasks.named('verifyDisplayCursor')
 }

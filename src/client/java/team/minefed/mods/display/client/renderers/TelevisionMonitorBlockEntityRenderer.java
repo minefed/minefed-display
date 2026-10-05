@@ -1,6 +1,5 @@
 package team.minefed.mods.display.client.renderers;
 
-import com.cinemamod.mcef.MCEF;
 import com.cinemamod.mcef.MCEFBrowser;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
@@ -45,7 +44,7 @@ public class TelevisionMonitorBlockEntityRenderer implements BlockEntityRenderer
 
         MCEFBrowser browser = BROWSERS.get(pos);
         if (browser == null) {
-            browser = MCEF.createBrowser(url, false);
+            browser = WorldDisplayBrowsers.create(url);
 
             browser.resize(1280, 805);
             BROWSERS.put(pos, browser);

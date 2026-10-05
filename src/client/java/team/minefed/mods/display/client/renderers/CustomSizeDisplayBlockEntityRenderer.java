@@ -1,6 +1,5 @@
 package team.minefed.mods.display.client.renderers;
 
-import com.cinemamod.mcef.MCEF;
 import com.cinemamod.mcef.MCEFBrowser;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
@@ -75,7 +74,7 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         boolean needsResize = cachedSize == null || cachedSize[0] != width || cachedSize[1] != height;
 
         if (browser == null) {
-            browser = MCEF.createBrowser(url, false);
+            browser = WorldDisplayBrowsers.create(url);
             browser.resize(width * PIXELS_PER_BLOCK, height * PIXELS_PER_BLOCK);
             BROWSERS.put(pos, browser);
             URLS.put(pos, url);
