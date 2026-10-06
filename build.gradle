@@ -159,7 +159,24 @@ tasks.register('verifyDisplayBezelTrace', JavaExec) {
 	}
 }
 
+tasks.register('verifyDisplayBezelVisibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks full-bezel frustum bounds and skips all offscreen bezel submissions.'
+	classpath = sourceSets.renderTest.runtimeClasspath
+	mainClass = 'team.minefed.mods.display.client.renderers.DisplayOcclusionTestLauncher'
+	systemProperty 'fabric.development', 'true'
+	systemProperty 'minefed.testMainClass', 'team.minefed.mods.display.client.renderers.DisplayBezelVisibilityTest'
+	workingDir = layout.buildDirectory.dir('bezel-visibility-test').get().asFile
+	doFirst {
+		workingDir.mkdirs()
+		def classpathFile = new File(workingDir, 'classpath.txt')
+		classpathFile.setText(classpath.asPath, 'UTF-8')
+		systemProperty 'minefed.testClasspath', classpathFile.absolutePath
+	}
+}
+
 tasks.named('check') {
 	dependsOn tasks.named('verifyDisplayBezelTrace')
 	dependsOn tasks.named('verifyDisplayCursor')
+	dependsOn tasks.named('verifyDisplayBezelVisibility')
 }

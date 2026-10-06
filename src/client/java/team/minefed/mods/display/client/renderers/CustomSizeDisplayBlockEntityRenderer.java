@@ -14,6 +14,7 @@ import team.minefed.mods.display.blocks.CustomSizeDisplayBlockEntity;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer<CustomSizeDisplayBlockEntity> {
 
@@ -24,6 +25,8 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
 
     // Pixels per block for browser resolution
     private static final int PIXELS_PER_BLOCK = 400;
+
+    private final Supplier<Frustum> bezelFrustum;
 
     // Bezel textures
     private static final Identifier TEX_LEFT_UPPER = new Identifier("minefed-display",
@@ -40,6 +43,11 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
             "textures/block/television_monitor/front_right_lower.png");
 
     public CustomSizeDisplayBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
+        this(context, BrowserVisibility::getFrustum);
+    }
+
+    CustomSizeDisplayBlockEntityRenderer(BlockEntityRendererFactory.Context context, Supplier<Frustum> bezelFrustum) {
+        this.bezelFrustum = bezelFrustum;
     }
 
     @Override
@@ -50,8 +58,14 @@ public class CustomSizeDisplayBlockEntityRenderer implements BlockEntityRenderer
         int width = entity.getDisplayWidth();
         int height = entity.getDisplayHeight();
 
-        // Always render bezel, even without URL
-        renderBezel(entity, matrices, vertexConsumers, width, height);
+        // The game invokes this renderer outside the block's own bounding box. Cull the
+        // complete bezel before emitting its grid; keep URL cleanup and browser lifetime
+        // handling below independent of bezel visibility, including for blank displays.
+        Frustum frustum = bezelFrustum.get();
+        if (width > 0 && height > 0 && (frustum == null || frustum.isVisible(BrowserVisibility.bezelBounds(
+                pos, entity.getCachedState().get(CustomSizeDisplayBlock.FACING), width, height)))) {
+            renderBezel(entity, matrices, vertexConsumers, width, height);
+        }
 
         if (url == null || url.isEmpty() || "about:blank".equals(url)) {
             if (BROWSERS.containsKey(pos)) {
